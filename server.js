@@ -17,20 +17,20 @@ var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
 var posts = [];
 var open = 0;
 var age = new Date();
-	//age.setMinutes(age.getMinutes() + 5);
+	//age.setMinutes(new Date().getMinutes() + 5);
 
 
 //init fill
 getPosts(function(){
 	//console.log("init")
-	age.setMinutes(age.getMinutes() + 5);
+	age.setMinutes(new Date().getMinutes() + 5);
 });
 
 
 app.get('/', function(req, res){
 
 	function sendstream(){
-		age.setMinutes(age.getMinutes() + 5);
+		age.setMinutes(new Date().getMinutes() + 5);
 		res.setHeader('x-age', age);
 		res.send(posts);		
 	}
