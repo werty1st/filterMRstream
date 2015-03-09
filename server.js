@@ -17,13 +17,14 @@ var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
 var posts = [];
 var open = 0;
 var age = new Date();
-	//age.setMinutes(new Date().getMinutes() + 5);
+var maxage = 5;
+
 
 
 //init fill
 getPosts(function(){
 	//console.log("init")
-	age.setMinutes(new Date().getMinutes() + 5);
+	age.setMinutes(new Date().getMinutes() + maxage);
 });
 
 
@@ -38,7 +39,7 @@ app.get('/', function(req, res){
 
 		posts = [];
 		//outdated get new	
-		age.setMinutes(new Date().getMinutes() + 5);
+		age.setMinutes(new Date().getMinutes() + maxage);
 		getPosts( sendstream );
 		
 	} else {
