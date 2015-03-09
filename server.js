@@ -29,8 +29,7 @@ getPosts(function(){
 
 app.get('/', function(req, res){
 
-	function sendstream(){
-		age.setMinutes(new Date().getMinutes() + 5);
+	function sendstream(){	
 		res.setHeader('x-age', age);
 		res.send(posts);		
 	}
@@ -39,7 +38,8 @@ app.get('/', function(req, res){
 
 		posts = [];
 		//outdated get new	
-		getPosts( sendstream )
+		age.setMinutes(new Date().getMinutes() + 5);
+		getPosts( sendstream );
 		
 	} else {
 		//send old
