@@ -11,44 +11,39 @@ var server = app.listen(process.env.PORT || 3000, function() {
 });
 
 var maxPosts = 10;
+var maxage = 5;
 var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
 
 
 var posts = [];
+var posts_out = [];
 var open = 0;
 var age = new Date();
-var maxage = 5;
 
 
+function updatePosts(){
+	posts_out = posts;
+	posts = [];
+	age.setMinutes(new Date().getMinutes() + maxage);
+}
 
 //init fill
-getPosts(function(){
-	//console.log("init")
-	age.setMinutes(new Date().getMinutes() + maxage);
-});
+getPosts( updatePosts );
 
 
 app.get('/', function(req, res){
 
-	function sendstream(){	
-		res.setHeader('x-age', age);
-		res.send(posts);		
-	}
-
 	if (age <= new Date() ){
-
-		posts = [];
 		//outdated get new	
-		age.setMinutes(new Date().getMinutes() + maxage);
-		getPosts( sendstream );
-		
-	} else {
-		//send old
-		sendstream();
+		getPosts( updatePosts );		
 	}
 
+	res.setHeader('X-Next-Refresh', age);
+	res.send(posts_out);
   
 });
+
+
 
 function getPosts( callback ){
 
