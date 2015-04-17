@@ -21,7 +21,7 @@ var server = app.listen(process.env.PORT || 3000, function() {
 });
 
 var maxPosts = 10;
-var maxage = 1;
+var maxage = 5;
 var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
 
 
