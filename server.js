@@ -49,7 +49,7 @@ app.get('/', function(req, res){
 
 	log.http("Stream request received","Age:", new Date(new Date().setMinutes( age.getMinutes()-maxage) ) );
 
-	if (age <= new Date() ){
+	if (+age <= +(new Date()) ){
 		//outdated get new	
 		log.info("stream outdated","reload posts");
 		getPosts( updatePosts );		
