@@ -4,7 +4,8 @@ var log = require('npmlog');
 
 
 log.heading = 'HSMRS';
-log.level = 'silent'
+log.level = 'silent';
+log.level = 'debug';
 //log.level = 'info';
 // log.verbose('verbose prefix', 'x = %j', {foo:{bar:'baz'}})
 // log.info('info prefix', 'x = %j', {foo:{bar:'baz'}})
@@ -36,29 +37,31 @@ function updatePosts(){
 	age = new Date( (new Date).getTime() + maxage*60000);
 
 	log.info("Posts loaded");
-	log.info("reload after", age );
+	log.verbose("reload after", age );
 	posts_out = posts;
 	posts = {};
 }
 
 //init fill
-log.info("Initial run");
+log.verbose("Initial run");
 getPosts( updatePosts );
 
 
 app.get('/', function(req, res){
 
-	log.http("Stream request received","Age:", age );
+	log.http("request received","version:", age );
 
 	var old = age.valueOf();
 	var now = new Date().valueOf();
 
 	if (old <= now ){
 		//outdated get new	
-		log.info("stream outdated","reload posts");
+		log.verbose("stream outdated","reload posts");
 		getPosts( updatePosts );		
 	}
 
+	res.setHeader('Cache-Control', 'no-chache,no-store');
+	res.setHeader('Edge-Control', 'public, max-age=' + maxage * 60);
 	res.setHeader('X-Next-Refresh', age);
 	posts_out = Object.keys(posts_out).map(function (key) {return posts_out[key]});
 	res.send(posts_out);
@@ -101,7 +104,7 @@ function addFB(post, callback, index){
 	
 	var fburl = "http://graph.facebook.com/"+post.from.id+"/picture";
 	
-	log.info("request #"+(index+1), "facebook");
+	log.verbose("request #"+(index+1), "facebook");
 
 
 	request({
@@ -112,7 +115,7 @@ function addFB(post, callback, index){
 	    if (!error && response.statusCode === 200) {
 	    	var newpost = {};
 
-	    	log.http("response #"+(index+1), fburl);
+	    	log.verbose("response #"+(index+1), fburl);
 
 	    	newpost.name 		= post.from.name;
 	    	newpost.screen_name = post.from.broadcast_name;
@@ -140,7 +143,7 @@ function addtw(post, callback, index){
 	//console.log("get tw face")	
 
 	var twurl = post.user.profile_image_url;
-	log.info("request #"+(index+1), "twitter");
+	log.verbose("request #"+(index+1), "twitter");
 
 	request({
 	    url: twurl,
@@ -151,7 +154,7 @@ function addtw(post, callback, index){
 
 	    	var newpost = {};
 
-			log.http("response #"+(index+1), twurl);
+			log.verbose("response #"+(index+1), twurl);
 
 	    	newpost.name 		= post.user.name;
 	    	newpost.screen_name = post.user.screen_name;
