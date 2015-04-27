@@ -5,8 +5,8 @@ var log = require('npmlog');
 
 log.heading = 'HSMRS';
 log.level = 'silent';
-log.level = 'debug';
-//log.level = 'info';
+//log.level = 'debug';
+log.level = 'info';
 // log.verbose('verbose prefix', 'x = %j', {foo:{bar:'baz'}})
 // log.info('info prefix', 'x = %j', {foo:{bar:'baz'}})
 // log.warn('warn prefix', 'x = %j', {foo:{bar:'baz'}})
@@ -22,7 +22,7 @@ var server = app.listen(process.env.PORT || 3000, function() {
 });
 
 var maxPosts = 10;
-var maxage = 5;
+var maxage = 1;
 var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
 
 
