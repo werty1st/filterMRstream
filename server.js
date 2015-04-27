@@ -33,11 +33,12 @@ var age = new Date();
 
 function updatePosts(){
 
+	age = new Date( (new Date).getTime() + maxage*60000);
+
 	log.info("Posts loaded");
-	log.info("reload after", new Date(new Date().setMinutes( new Date().getMinutes() + maxage)) );
+	log.info("reload after", age );
 	posts_out = posts;
 	posts = {};
-	age.setMinutes(new Date().getMinutes() + maxage);
 }
 
 //init fill
@@ -47,9 +48,12 @@ getPosts( updatePosts );
 
 app.get('/', function(req, res){
 
-	log.http("Stream request received","Age:", new Date(new Date().setMinutes( age.getMinutes()-maxage) ) );
+	log.http("Stream request received","Age:", age );
 
-	if (+age <= +(new Date()) ){
+	var old = age.valueOf();
+	var now = new Date().valueOf();
+
+	if (old <= now ){
 		//outdated get new	
 		log.info("stream outdated","reload posts");
 		getPosts( updatePosts );		
