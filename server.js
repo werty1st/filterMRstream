@@ -1,11 +1,12 @@
+/// <reference path="typings/node/node.d.ts"/>
 var fs = require('fs');
 var request = require("request");
 var log = require('npmlog');
-
+var Q = require("q");
 
 log.heading = 'HSMRS';
 log.level = 'silent';
-//log.level = 'debug';
+log.level = 'debug';
 log.level = 'info';
 // log.verbose('verbose prefix', 'x = %j', {foo:{bar:'baz'}})
 // log.info('info prefix', 'x = %j', {foo:{bar:'baz'}})
@@ -18,7 +19,7 @@ var app = express();
 
 
 var server = app.listen(process.env.PORT || 3000, function() {
-    console.log('Listening on port %d', server.address().port);
+    log.info('Listening on port', server.address().port);
 });
 
 var maxPosts = 10;
@@ -32,70 +33,77 @@ var open = 0;
 var age = new Date();
 
 
-function updatePosts(){
-
-	age = new Date( (new Date).getTime() + maxage*60000);
-
-	log.info("Posts loaded");
-	log.verbose("reload after", age );
+function updatePosts() {
+	age = new Date();
+	log.info("Update Posts",age);
 	posts_out = posts;
 	posts = {};
 }
 
 //init fill
-log.verbose("Initial run");
-getPosts( updatePosts );
+log.verbose("Starting up...");
+getPosts().then( function () {
 
-
-app.get('/', function(req, res){
-
-	log.http("request received","version:", age );
-
-	var old = age.valueOf();
-	var now = new Date().valueOf();
-
-	if (old <= now ){
-		//outdated get new	
-		log.verbose("stream outdated","reload posts");
-		getPosts( updatePosts );		
-	}
-
-	res.setHeader('Cache-Control', 'no-chache,no-store');
-	res.setHeader('Edge-Control', 'public, max-age=' + maxage * 60);
-	res.setHeader('X-Next-Refresh', age);
-	posts_out = Object.keys(posts_out).map(function (key) {return posts_out[key]});
-	res.send(posts_out);
-  
+	//posts geladen
+	updatePosts();
+	
+	app.get('/', function(req, res){
+		log.http("Request received", age );
+		res.setHeader('Cache-Control', 'no-chache,no-store');
+		res.setHeader('Edge-Control', 'public, max-age=' + maxage * 60);
+		res.setHeader('X-Next-Refresh', age);
+		posts_out = Object.keys(posts_out).map(function (key) {return posts_out[key];});
+		res.send(posts_out);
+	});
+	
 });
 
 
+//mainLoop
+	setInterval( function() {
+		 log.info("Reload Posts",age);
+		 getPosts().then( updatePosts, function (error) {
+			// If there's an error or a non-200 status code, log the error.
+			if (open > maxPosts/2){
+				log.error( open ,'requests didn\'t respond in time.' );
+				//todo send error mail
+			} else {
+				log.warn( open ,'requests didn\'t respond in time.' );
+				updatePosts();
+			}
+			
+			} ); 
+		 }, maxage * 60000 );
+//endMainLoop
 
-function getPosts( callback ){
+function getPosts(){
 
+	var deferred = Q.defer();
+
+	open = 0;
 	request({
 			    url: url,
 			    json: true
 			}, function (error, response, body) {
 
 			    if (!error && response.statusCode === 200) {
-			        //console.log(body) // Print the json response
 
 			        for (var i = 0; i<body.length && i<maxPosts; i++) {
 			        	var nw = body[i].network;
 			        	var post = body[i];
 
 			        	if (nw == "facebook"){
-			        		addFB(post, callback, i);
 			        		open++;
+							addFB(post, deferred.resolve, i);
 			        	} else if ( nw == "twitter"){
-			        		addtw(post, callback, i);
-			        		open++;
+							open++;
+			        		addtw(post, deferred.resolve, i);
 			        	}
 			        };
-
 			    }
 			});
-
+	setTimeout( deferred.reject, 10000);
+	return deferred.promise;
 }
 
 function addFB(post, callback, index){
@@ -128,12 +136,13 @@ function addFB(post, callback, index){
 			newpost.face = "data:" + response.headers["content-type"] + ";base64," + new Buffer(body).toString('base64');
 
 			posts[index]=newpost;
-
-			open--;
-			if (open<=0) callback();
+			
 	    }else {
 			log.warn("request #"+(index+1), "failed");
 		}
+		open--;
+		log.verbose("Pending requests ", open);
+		if (open<=0) callback();		
 	});
 
 }
@@ -168,12 +177,13 @@ function addtw(post, callback, index){
 
 			posts[index]=newpost;
 
-			open--;
-			if (open<=0) callback();
-
 		} else {
 			log.warn("request #"+(index+1), "failed");
 		}
+		open--;
+		log.verbose("Pending requests ", open);
+		if (open<=0) callback();
+		
 	});
 
 }
