@@ -32,6 +32,11 @@ var posts_out = {};
 var open = 0;
 var age = new Date();
 
+function getUrl(){
+	var unixts = new Date().getTime();
+	return url + "?timeframe[end]="+unixts+"&limit=" + maxPosts;
+}
+
 
 function updatePosts() {
 	age = new Date();
@@ -82,7 +87,7 @@ function getPosts(){
 
 	open = 0;
 	request({
-			    url: url,
+			    url: getUrl(),
 			    json: true
 			}, function (error, response, body) {
 
