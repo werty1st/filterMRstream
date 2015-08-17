@@ -24,7 +24,7 @@ var server = app.listen(process.env.PORT || 3000, function() {
 
 var maxPosts = 10;
 var maxage = 1;
-var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
+var url = "http://api.massrelevance.com/ZDFM/neo-magazin-royale-netzschau.json";
 
 
 var posts = {};

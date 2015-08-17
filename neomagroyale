@@ -2,13 +2,13 @@
 
 NODE_ENV="production"
 NODE_APP="server.js"
-APP_DIR="/opt/filterMRstream/"
+APP_DIR="/opt/neomagroyale/"
 PID_DIR="$APP_DIR/pid"
 PID_FILE="$PID_DIR/app.pid"
 LOG_DIR="$APP_DIR/log"
 LOG_FILE="$LOG_DIR/app.log"
 CONFIG_DIR="$APP_DIR"
-PORT=3003
+PORT=3004
 NODE_EXEC=$(which node)
 
 ###############
