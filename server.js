@@ -1,8 +1,12 @@
-/// <reference path="typings/node/node.d.ts"/>
-var fs = require('fs');
-var request = require("request");
-var log = require('npmlog');
-var Q = require("q");
+
+const fs = require('fs');
+const request = require("request");
+const log = require('npmlog');
+const Q = require("q");
+
+const express = require('express');
+const app = express();
+      app.enable('trust proxy');
 
 log.heading = 'HSMRS';
 log.level = 'silent';
@@ -13,18 +17,16 @@ log.level = 'info';
 // log.warn('warn prefix', 'x = %j', {foo:{bar:'baz'}})
 // log.error('error prefix', 'x = %j', {foo:{bar:'baz'}})
 
-var express = require('express');
-var app = express();
-    app.enable('trust proxy');
 
+const maxPosts = 10;
+const maxage = 1000;
+const url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
 
-var server = app.listen(process.env.PORT || 3000, function() {
+const server = app.listen(process.env.listenport, function() {
     log.info('Listening on port', server.address().port);
 });
 
-var maxPosts = 10;
-var maxage = 1;
-var url = "http://api.massrelevance.com/ZDFM/hs-comments.json";
+
 
 
 var posts = {};
@@ -53,9 +55,9 @@ getPosts().then( function () {
 	updatePosts();
 	
 	app.get('/', function(req, res){
-		log.http("Request received", age );
+		if (process.env.test != "true") log.http("Request received", age );
 		res.setHeader('Cache-Control', 'no-chache,no-store');
-		res.setHeader('Edge-Control', 'public, max-age=' + maxage * 60);
+		res.setHeader('Edge-Control', 'public, max-age=' + maxage / 1000);
 		res.setHeader('X-Next-Refresh', age);
 		posts_out = Object.keys(posts_out).map(function (key) {return posts_out[key];});
 		res.send(posts_out);
@@ -65,9 +67,9 @@ getPosts().then( function () {
 
 
 //mainLoop
-	setInterval( function() {
-		 log.info("Reload Posts",age);
-		 getPosts().then( updatePosts, function (error) {
+setInterval( function() {
+		log.info("Reload Posts",age);
+		getPosts().then( updatePosts, function (error) {
 			// If there's an error or a non-200 status code, log the error.
 			if (open > maxPosts/2){
 				log.error( open ,'requests didn\'t respond in time.' );
@@ -76,9 +78,9 @@ getPosts().then( function () {
 				log.warn( open ,'requests didn\'t respond in time.' );
 				updatePosts();
 			}
-			
-			} ); 
-		 }, maxage * 60000 );
+		
+		} ); 
+		}, maxage * 1 );
 //endMainLoop
 
 function getPosts(){
